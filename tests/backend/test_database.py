@@ -1,6 +1,6 @@
 """Tests for the database module."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -160,13 +160,13 @@ class TestDatabaseOperations:
                 session_id="test-session",
                 role="user",
                 content="First",
-                created_at=datetime.now(timezone.utc) - timedelta(minutes=2),
+                created_at=datetime.now(UTC) - timedelta(minutes=2),
             )
             msg2 = ChatMessage(
                 session_id="test-session",
                 role="assistant",
                 content="Second",
-                created_at=datetime.now(timezone.utc) - timedelta(minutes=1),
+                created_at=datetime.now(UTC) - timedelta(minutes=1),
             )
             db.add_all([msg1, msg2])
             await db.commit()
@@ -204,17 +204,17 @@ class TestDatabaseOperations:
         async with async_session() as db:
             old_session = Session(
                 id="old-session",
-                last_activity=datetime.now(timezone.utc) - timedelta(days=45),
+                last_activity=datetime.now(UTC) - timedelta(days=45),
             )
             new_session = Session(
                 id="new-session",
-                last_activity=datetime.now(timezone.utc),
+                last_activity=datetime.now(UTC),
             )
             db.add_all([old_session, new_session])
             await db.commit()
 
         # Clean up expired sessions
-        cutoff = datetime.now(timezone.utc) - timedelta(days=30)
+        cutoff = datetime.now(UTC) - timedelta(days=30)
         async with async_session() as db:
             await db.execute(delete(Session).where(Session.last_activity < cutoff))
             await db.commit()

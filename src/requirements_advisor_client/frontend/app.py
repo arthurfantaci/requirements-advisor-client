@@ -177,25 +177,24 @@ def render_chat() -> None:
             st.markdown(prompt)
 
         # Get assistant response
-        with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
-                result = send_chat_message(
-                    message=prompt,
-                    session_id=st.session_state.session_id,
-                    provider=st.session_state.selected_llm,
-                    history=st.session_state.messages[-10:],
-                )
+        with st.chat_message("assistant"), st.spinner("Thinking..."):
+            result = send_chat_message(
+                message=prompt,
+                session_id=st.session_state.session_id,
+                provider=st.session_state.selected_llm,
+                history=st.session_state.messages[-10:],
+            )
 
-                if "error" in result:
-                    response_text = f"*Error: {result['error']}*"
-                else:
-                    response_text = result.get("response", "No response received.")
-                    st.session_state.session_id = result.get("session_id")
+            if "error" in result:
+                response_text = f"*Error: {result['error']}*"
+            else:
+                response_text = result.get("response", "No response received.")
+                st.session_state.session_id = result.get("session_id")
 
-                st.markdown(response_text)
-                st.session_state.messages.append(
-                    {"role": "assistant", "content": response_text}
-                )
+            st.markdown(response_text)
+            st.session_state.messages.append(
+                {"role": "assistant", "content": response_text}
+            )
 
 
 def main() -> None:

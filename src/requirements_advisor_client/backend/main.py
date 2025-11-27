@@ -67,8 +67,8 @@ async def lifespan(app: FastAPI):
 
     logger.info("Starting Requirements Advisor Client")
 
-    # Ensure data directory exists
-    settings.data_dir
+    # Ensure data directory exists (property creates it as side effect)
+    _ = settings.data_dir
 
     # Initialize database
     await init_database()
@@ -214,7 +214,7 @@ async def chat(request: ChatRequest, req: Request) -> ChatResponse:
             mcp_client=mcp_client,
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
         logger.error("LLM call failed", error=str(e))
         error_msg = str(e)
@@ -223,18 +223,18 @@ async def chat(request: ChatRequest, req: Request) -> ChatResponse:
             raise HTTPException(
                 status_code=402,
                 detail=f"API quota exceeded for {request.provider}. Please check your billing.",
-            )
+            ) from None
         if "rate" in error_msg.lower() and "limit" in error_msg.lower():
             raise HTTPException(
                 status_code=429,
                 detail=f"Rate limit exceeded for {request.provider}. Try again later.",
-            )
+            ) from None
         if "invalid" in error_msg.lower() and "key" in error_msg.lower():
             raise HTTPException(
                 status_code=401,
                 detail=f"Invalid API key for {request.provider}. Check your configuration.",
-            )
-        raise HTTPException(status_code=500, detail=f"LLM error: {error_msg}")
+            ) from None
+        raise HTTPException(status_code=500, detail=f"LLM error: {error_msg}") from None
 
     # Save messages to database
     await save_message(session_id, "user", request.message)

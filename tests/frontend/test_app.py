@@ -2,8 +2,6 @@
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 
 class TestFrontendConfig:
     """Test cases for frontend configuration."""
@@ -125,9 +123,9 @@ class TestSendChatMessage:
 
     def test_send_message_timeout(self):
         """Test message send timeout."""
-        from requirements_advisor_client.frontend.app import send_chat_message
-
         import requests
+
+        from requirements_advisor_client.frontend.app import send_chat_message
 
         with patch("requests.post", side_effect=requests.exceptions.Timeout):
             result = send_chat_message(
@@ -143,9 +141,9 @@ class TestSendChatMessage:
 
     def test_send_message_connection_error(self):
         """Test message send connection error."""
-        from requirements_advisor_client.frontend.app import send_chat_message
-
         import requests
+
+        from requirements_advisor_client.frontend.app import send_chat_message
 
         with patch(
             "requests.post",

@@ -40,22 +40,25 @@ MCP Client web application for requirements management guidance. Connects to a r
 ```
 requirements-advisor-client/
 ├── src/requirements_advisor_client/
-│   ├── backend/           # FastAPI application
-│   │   ├── main.py        # API endpoints
-│   │   ├── config.py      # Pydantic settings
-│   │   ├── logging.py     # Loguru setup
-│   │   ├── mcp_client.py  # MCP client class
-│   │   ├── llm.py         # LiteLLM integration
-│   │   ├── models.py      # Pydantic models
-│   │   └── database.py    # SQLAlchemy setup
-│   └── frontend/          # Streamlit application
-│       ├── app.py         # Chat UI
-│       ├── config.py      # Frontend settings
-│       └── styles.py      # CSS/branding
-├── tests/                 # pytest test suite
-├── Dockerfile             # Multi-stage Docker build
-├── docker-compose.yml     # Development setup
-└── pyproject.toml         # Project configuration
+│   ├── backend/              # FastAPI application
+│   │   ├── main.py           # API endpoints
+│   │   ├── config.py         # Pydantic settings
+│   │   ├── logging.py        # Loguru setup
+│   │   ├── mcp_client.py     # MCP client class
+│   │   ├── llm.py            # LiteLLM integration
+│   │   ├── models.py         # Pydantic models
+│   │   └── database.py       # SQLAlchemy setup
+│   └── frontend/             # Streamlit application
+│       ├── app.py            # Chat UI
+│       ├── config.py         # Frontend settings
+│       ├── styles.py         # CSS/branding
+│       └── .streamlit/
+│           └── config.toml   # Theme configuration
+├── tests/                    # pytest test suite
+├── Dockerfile                # Multi-stage Docker build
+├── docker-compose.yml        # Development setup
+├── railway.toml              # Railway deployment config
+└── pyproject.toml            # Project configuration
 ```
 
 ## Quick Start
@@ -70,7 +73,7 @@ requirements-advisor-client/
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/requirements-advisor-client.git
+git clone <repository-url>
 cd requirements-advisor-client
 
 # Install dependencies

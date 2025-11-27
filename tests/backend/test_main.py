@@ -1,8 +1,6 @@
 """Tests for the main FastAPI application."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -12,9 +10,10 @@ from requirements_advisor_client.backend.models import ChatResponse, HealthRespo
 # Create a test app without lifespan to avoid MCP connection attempts
 def create_test_app():
     """Create a FastAPI app for testing without lifespan."""
-    from fastapi import HTTPException, Request
-    from fastapi.middleware.cors import CORSMiddleware
     from uuid import uuid4
+
+    from fastapi import Request
+    from fastapi.middleware.cors import CORSMiddleware
 
     app = FastAPI(title="Test App")
 

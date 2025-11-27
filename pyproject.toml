@@ -49,8 +49,8 @@ dev = [
 requirements-advisor-backend = "requirements_advisor_client.backend.main:cli"
 requirements-advisor-frontend = "requirements_advisor_client.frontend.app:main"
 
-[project.urls]
-Repository = "https://github.com/yourusername/requirements-advisor-client"
+# [project.urls]
+# Repository = "https://github.com/yourusername/requirements-advisor-client"
 
 [build-system]
 requires = ["hatchling"]

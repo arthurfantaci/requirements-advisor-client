@@ -1,6 +1,6 @@
 """Tests for the LLM integration module."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -219,7 +219,7 @@ class TestSupportedProviders:
         from requirements_advisor_client.backend.llm import get_model_for_provider
 
         assert "claude" in get_model_for_provider("claude")
-        assert "gpt-4o" == get_model_for_provider("openai")
+        assert get_model_for_provider("openai") == "gpt-4o"
         assert "gemini" in get_model_for_provider("gemini")
 
     def test_get_model_for_invalid_provider(self):

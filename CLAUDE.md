@@ -25,7 +25,9 @@ requirements-advisor-client/
 │       ├── __init__.py
 │       ├── app.py                  # Chat UI
 │       ├── config.py               # Frontend settings
-│       └── styles.py               # CSS/branding
+│       ├── styles.py               # CSS/branding
+│       └── .streamlit/
+│           └── config.toml         # Streamlit theme configuration
 ├── tests/                          # pytest test suite
 │   ├── conftest.py                 # Shared fixtures
 │   ├── backend/
@@ -38,6 +40,7 @@ requirements-advisor-client/
 │       └── test_app.py
 ├── Dockerfile                      # Multi-stage build
 ├── docker-compose.yml              # Dev environment
+├── railway.toml                    # Railway deployment config
 ├── pyproject.toml                  # Project config (uv, ruff, pytest)
 ├── .env.example                    # Environment template
 └── .pre-commit-config.yaml         # Code quality hooks
