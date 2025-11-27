@@ -73,7 +73,7 @@ requirements-advisor-client/
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/arthurfantaci/requirements-advisor-client.git
 cd requirements-advisor-client
 
 # Install dependencies
