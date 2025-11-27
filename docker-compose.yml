@@ -1,0 +1,86 @@
+version: "3.8"
+
+services:
+  # =============================================================================
+  # Backend Service - FastAPI with MCP client and LLM integration
+  # =============================================================================
+  backend:
+    build:
+      context: .
+      target: backend
+    container_name: requirements-advisor-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./data/sessions.db
+      - LOG_LEVEL=INFO
+    volumes:
+      - backend_data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - advisor-network
+
+  # =============================================================================
+  # Frontend Service - Streamlit chat interface
+  # =============================================================================
+  frontend:
+    build:
+      context: .
+      target: frontend
+    container_name: requirements-advisor-frontend
+    ports:
+      - "8501:8501"
+    environment:
+      - API_URL=http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - advisor-network
+
+  # =============================================================================
+  # PostgreSQL Database (optional, for production-like setup)
+  # =============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: requirements-advisor-postgres
+    environment:
+      POSTGRES_USER: advisor
+      POSTGRES_PASSWORD: advisor
+      POSTGRES_DB: sessions
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U advisor -d sessions"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - postgres
+    networks:
+      - advisor-network
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  advisor-network:
+    driver: bridge
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  backend_data:
+    driver: local
+  postgres_data:
+    driver: local

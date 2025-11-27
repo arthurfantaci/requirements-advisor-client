@@ -1,0 +1,16 @@
+# Railway deployment configuration for Requirements Advisor Client
+# This file configures the backend service deployment
+
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+# Build the backend target from the multi-stage Dockerfile
+[build.args]
+target = "backend"
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
