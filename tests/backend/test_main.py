@@ -1,6 +1,5 @@
 """Tests for the main FastAPI application."""
 
-
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 

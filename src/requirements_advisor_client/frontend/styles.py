@@ -109,6 +109,15 @@ def apply_jama_branding() -> None:
             color: #EF4444;
             font-size: 0.875rem;
         }}
+
+        /* Guardrail indicators - subtle styling */
+        .guardrail-indicator {{
+            color: #6B7280;
+            font-size: 0.75rem;
+            font-style: italic;
+            margin-top: -0.5rem;
+            padding: 2px 0;
+        }}
         </style>
     """,
         unsafe_allow_html=True,
@@ -128,3 +137,31 @@ def render_status_indicator(connected: bool, label: str) -> None:
         f'<span class="{status_class}">{label}: {status_text}</span>',
         unsafe_allow_html=True,
     )
+
+
+def render_guardrail_indicator(indicator_type: str) -> None:
+    """Render a subtle guardrail indicator below chat responses.
+
+    Displays a small, italicized indicator when guardrails have intervened
+    to either redirect an off-topic query or filter content for safety.
+
+    Args:
+        indicator_type: Type of guardrail intervention.
+            - "redirected": Off-topic query was redirected
+            - "filtered": Content was filtered for safety (PII/toxicity)
+
+    Example:
+        >>> render_guardrail_indicator("redirected")
+        >>> render_guardrail_indicator("filtered")
+    """
+    messages = {
+        "redirected": "Topic guidance provided",
+        "filtered": "Content reviewed for safety",
+    }
+
+    message = messages.get(indicator_type, "")
+    if message:
+        st.markdown(
+            f'<p class="guardrail-indicator">*{message}*</p>',
+            unsafe_allow_html=True,
+        )

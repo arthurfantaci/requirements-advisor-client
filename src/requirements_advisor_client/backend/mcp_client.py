@@ -91,9 +91,7 @@ class MCPClient:
             )
             read, write, _ = streams
 
-            self.session = await self._exit_stack.enter_async_context(
-                ClientSession(read, write)
-            )
+            self.session = await self._exit_stack.enter_async_context(ClientSession(read, write))
 
             # Critical: always initialize the session
             await self.session.initialize()

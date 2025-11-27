@@ -164,11 +164,13 @@ async def call_llm_with_mcp_tools(
                 tool_result = "Error: MCP client not connected"
 
             # Add tool result to messages
-            current_messages.append({
-                "role": "tool",
-                "tool_call_id": tool_call.id,
-                "content": tool_result,
-            })
+            current_messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "content": tool_result,
+                }
+            )
 
     # Max iterations reached - get final response without tools
     logger.warning("Max iterations reached, getting final response")

@@ -32,11 +32,17 @@ class ChatResponse(BaseModel):
         response: The assistant's response text.
         session_id: Session ID for the conversation.
         tools_used: List of MCP tools that were invoked.
+        was_redirected: Whether the response was a polite redirect for off-topic query.
+        content_filtered: Whether output was filtered (PII/toxicity).
     """
 
     response: str = Field(..., description="The assistant's response")
     session_id: str = Field(..., description="Session ID for the conversation")
     tools_used: list[str] = Field(default_factory=list, description="Tools that were invoked")
+    was_redirected: bool = Field(default=False, description="True if off-topic redirect occurred")
+    content_filtered: bool = Field(
+        default=False, description="True if output was filtered for safety"
+    )
 
 
 class ToolInfo(BaseModel):

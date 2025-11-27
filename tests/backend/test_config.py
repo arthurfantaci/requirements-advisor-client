@@ -13,7 +13,9 @@ class TestSettings:
 
         settings = Settings()
 
-        assert settings.mcp_server_url == "https://requirements-advisor-production.up.railway.app/mcp"
+        assert (
+            settings.mcp_server_url == "https://requirements-advisor-production.up.railway.app/mcp"
+        )
         assert "sqlite" in settings.database_url
         assert settings.backend_host == "0.0.0.0"
         assert settings.backend_port == 8000

@@ -42,9 +42,7 @@ class TestMCPClient:
             with patch(
                 "requirements_advisor_client.backend.mcp_client.ClientSession"
             ) as mock_client_session:
-                mock_client_session.return_value.__aenter__ = AsyncMock(
-                    return_value=mock_session
-                )
+                mock_client_session.return_value.__aenter__ = AsyncMock(return_value=mock_session)
                 mock_client_session.return_value.__aexit__ = AsyncMock()
 
                 client = MCPClient()
@@ -74,9 +72,7 @@ class TestMCPClient:
             with patch(
                 "requirements_advisor_client.backend.mcp_client.ClientSession"
             ) as mock_client_session:
-                mock_client_session.return_value.__aenter__ = AsyncMock(
-                    return_value=mock_session
-                )
+                mock_client_session.return_value.__aenter__ = AsyncMock(return_value=mock_session)
                 mock_client_session.return_value.__aexit__ = AsyncMock()
 
                 client = MCPClient()

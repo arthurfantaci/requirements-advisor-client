@@ -16,6 +16,12 @@ RUN uv venv /app/.venv && \
     . /app/.venv/bin/activate && \
     uv pip install --no-cache .
 
+# Install Guardrails hub validators for input/output filtering
+RUN . /app/.venv/bin/activate && \
+    guardrails hub install hub://tryolabs/restricttotopic --no-install-local-models --quiet && \
+    guardrails hub install hub://guardrails/toxic_language --quiet && \
+    guardrails hub install hub://guardrails/detect_pii --quiet
+
 # =============================================================================
 # Stage 2: Runtime
 # =============================================================================

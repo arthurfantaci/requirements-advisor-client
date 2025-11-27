@@ -38,6 +38,53 @@ class Settings(BaseSettings):
     openai_api_key: str | None = None
     google_api_key: str | None = None
 
+    # Guardrails Configuration
+    guardrails_enabled: bool = True
+    guardrails_llm_provider: str = "gpt-3.5-turbo"
+    guardrails_toxicity_threshold: float = 0.8
+    guardrails_pii_entities: list[str] = [
+        "EMAIL_ADDRESS",
+        "PHONE_NUMBER",
+        "US_SSN",
+        "CREDIT_CARD",
+        "IP_ADDRESS",
+    ]
+    guardrails_valid_topics: list[str] = [
+        "requirements management",
+        "requirements engineering",
+        "traceability",
+        "Jama Software",
+        "Jama Connect",
+        "INCOSE",
+        "EARS notation",
+        "system requirements",
+        "software requirements",
+        "verification",
+        "validation",
+        "requirements analysis",
+        "requirements specification",
+        "requirements elicitation",
+        "stakeholder requirements",
+        "functional requirements",
+        "non-functional requirements",
+        "requirements review",
+        "requirements baseline",
+        "change management",
+        "impact analysis",
+    ]
+    guardrails_invalid_topics: list[str] = [
+        "politics",
+        "religion",
+        "sports",
+        "entertainment",
+        "cooking",
+        "travel",
+        "fashion",
+        "gaming",
+        "cryptocurrency",
+        "stock trading",
+    ]
+
     @property
     def async_database_url(self) -> str:
         """Return the database URL converted for async drivers.

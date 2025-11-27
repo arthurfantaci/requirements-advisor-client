@@ -10,6 +10,7 @@ import streamlit as st
 from requirements_advisor_client.frontend.config import frontend_settings
 from requirements_advisor_client.frontend.styles import (
     apply_jama_branding,
+    render_guardrail_indicator,
     render_status_indicator,
 )
 
@@ -59,8 +60,12 @@ def send_chat_message(
         history: Previous conversation messages for context.
 
     Returns:
-        Response dictionary with 'response' and 'session_id' keys,
-        or 'error' key on failure.
+        Response dictionary with keys:
+        - 'response': The assistant's response text
+        - 'session_id': Session ID for conversation continuity
+        - 'was_redirected': True if off-topic redirect occurred
+        - 'content_filtered': True if output was filtered for safety
+        - 'error': Error message on failure (mutually exclusive with above)
     """
     try:
         response = requests.post(
@@ -187,14 +192,23 @@ def render_chat() -> None:
 
             if "error" in result:
                 response_text = f"*Error: {result['error']}*"
+                was_redirected = False
+                content_filtered = False
             else:
                 response_text = result.get("response", "No response received.")
                 st.session_state.session_id = result.get("session_id")
+                was_redirected = result.get("was_redirected", False)
+                content_filtered = result.get("content_filtered", False)
 
             st.markdown(response_text)
-            st.session_state.messages.append(
-                {"role": "assistant", "content": response_text}
-            )
+
+            # Render subtle guardrail indicators
+            if was_redirected:
+                render_guardrail_indicator("redirected")
+            if content_filtered:
+                render_guardrail_indicator("filtered")
+
+            st.session_state.messages.append({"role": "assistant", "content": response_text})
 
 
 def main() -> None:

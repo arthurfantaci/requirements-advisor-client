@@ -10,9 +10,9 @@ MCP Client web application for requirements management guidance. Connects to a r
 
 - **Multi-LLM Support**: Claude, GPT-4o, and Gemini via LiteLLM
 - **MCP Integration**: Connects to remote MCP server using Streamable HTTP transport
+- **AI Guardrails**: Input/output filtering using Guardrails AI for topic restriction, PII redaction, and content safety
 - **Chat Interface**: Streamlit-based UI with conversation history
 - **Session Persistence**: PostgreSQL/SQLite storage for chat history
-- **Jama Branding**: Professional styling with signature orange accent (#E86826)
 - **Docker Support**: Multi-stage builds for development and production
 - **Comprehensive Testing**: pytest with async support and coverage
 
@@ -46,6 +46,7 @@ requirements-advisor-client/
 │   │   ├── logging.py        # Loguru setup
 │   │   ├── mcp_client.py     # MCP client class
 │   │   ├── llm.py            # LiteLLM integration
+│   │   ├── guardrails.py     # Input/output guardrails
 │   │   ├── models.py         # Pydantic models
 │   │   └── database.py       # SQLAlchemy setup
 │   └── frontend/             # Streamlit application
@@ -211,6 +212,9 @@ docker compose down
 | `ANTHROPIC_API_KEY` | Anthropic API key | - |
 | `OPENAI_API_KEY` | OpenAI API key | - |
 | `GOOGLE_API_KEY` | Google AI API key | - |
+| `GUARDRAILS_ENABLED` | Enable input/output guardrails | `true` |
+| `GUARDRAILS_LLM_PROVIDER` | LLM for topic classification | `gpt-3.5-turbo` |
+| `GUARDRAILS_TOXICITY_THRESHOLD` | Toxicity detection threshold (0-1) | `0.8` |
 
 ### Frontend
 
@@ -269,13 +273,53 @@ Response:
 {
   "response": "Here are some best practices...",
   "session_id": "abc123",
-  "tools_used": []
+  "tools_used": [],
+  "was_redirected": false,
+  "content_filtered": false
 }
 ```
+
+- `was_redirected`: `true` if the query was off-topic and received a polite redirect
+- `content_filtered`: `true` if PII was redacted or toxic content was sanitized
 
 ### `GET /history/{session_id}`
 
 Get chat history for a session.
+
+## Guardrails
+
+The application includes AI guardrails powered by [Guardrails AI](https://guardrailsai.com/) to ensure safe and on-topic interactions.
+
+### Input Guardrails
+
+- **Topic Restriction**: Validates that user prompts relate to requirements management, Jama Software, or traceability. Off-topic queries receive a polite redirect rather than a hard block.
+- **Toxicity Detection**: Blocks harmful or inappropriate content with a 400 error response.
+
+### Output Guardrails
+
+- **PII Redaction**: Automatically detects and redacts personal information (emails, phone numbers, SSNs, credit cards, IP addresses).
+- **Content Safety**: Sanitizes any toxic content in LLM responses.
+
+### Configuration
+
+Guardrails can be disabled or customized via environment variables:
+
+```bash
+GUARDRAILS_ENABLED=true              # Enable/disable guardrails
+GUARDRAILS_LLM_PROVIDER=gpt-3.5-turbo  # Model for topic classification
+GUARDRAILS_TOXICITY_THRESHOLD=0.8    # Toxicity threshold (0-1)
+```
+
+### Valid Topics
+
+The following topics are allowed by default:
+- Requirements management and engineering
+- Jama Software and Jama Connect
+- Traceability and impact analysis
+- INCOSE guidelines
+- EARS notation
+- Verification and validation
+- Functional and non-functional requirements
 
 ## Contributing
 

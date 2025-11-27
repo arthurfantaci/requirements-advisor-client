@@ -226,9 +226,7 @@ async def cleanup_expired_sessions(days: int = 30) -> int:
     cutoff = _utc_now() - timedelta(days=days)
 
     async with get_db() as db:
-        result = await db.execute(
-            delete(Session).where(Session.last_activity < cutoff)
-        )
+        result = await db.execute(delete(Session).where(Session.last_activity < cutoff))
         await db.commit()
         count = result.rowcount
 

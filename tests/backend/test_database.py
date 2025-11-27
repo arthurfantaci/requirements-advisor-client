@@ -50,9 +50,7 @@ class TestDatabaseOperations:
 
         # Verify tables exist
         async with engine.connect() as conn:
-            result = await conn.execute(
-                text("SELECT name FROM sqlite_master WHERE type='table'")
-            )
+            result = await conn.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))
             tables = [row[0] for row in result.fetchall()]
 
         assert "sessions" in tables
@@ -83,9 +81,7 @@ class TestDatabaseOperations:
 
         # Retrieve session
         async with async_session() as db:
-            result = await db.execute(
-                select(Session).where(Session.id == "test-session-123")
-            )
+            result = await db.execute(select(Session).where(Session.id == "test-session-123"))
             retrieved = result.scalar_one_or_none()
 
             assert retrieved is not None
