@@ -38,6 +38,8 @@ requirements-advisor-client/
 │   │   └── test_main.py
 │   └── frontend/
 │       └── test_app.py
+├── .devcontainer/
+│   └── devcontainer.json           # VS Code devcontainer config
 ├── Dockerfile                      # Multi-stage build
 ├── docker-compose.yml              # Dev environment
 ├── railway.toml                    # Railway deployment config
