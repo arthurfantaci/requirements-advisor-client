@@ -217,7 +217,24 @@ async def chat(request: ChatRequest, req: Request) -> ChatResponse:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error("LLM call failed", error=str(e))
-        raise HTTPException(status_code=500, detail=f"LLM error: {e}")
+        error_msg = str(e)
+        # Provide helpful error messages for common API errors
+        if "quota" in error_msg.lower() or "insufficient_quota" in error_msg.lower():
+            raise HTTPException(
+                status_code=402,
+                detail=f"API quota exceeded for {request.provider}. Please check your billing.",
+            )
+        if "rate" in error_msg.lower() and "limit" in error_msg.lower():
+            raise HTTPException(
+                status_code=429,
+                detail=f"Rate limit exceeded for {request.provider}. Try again later.",
+            )
+        if "invalid" in error_msg.lower() and "key" in error_msg.lower():
+            raise HTTPException(
+                status_code=401,
+                detail=f"Invalid API key for {request.provider}. Check your configuration.",
+            )
+        raise HTTPException(status_code=500, detail=f"LLM error: {error_msg}")
 
     # Save messages to database
     await save_message(session_id, "user", request.message)
