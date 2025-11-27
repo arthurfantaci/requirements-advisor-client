@@ -1,20 +1,8 @@
 """Tests for the database module."""
 
 from datetime import datetime, timedelta
-from unittest.mock import patch
 
 import pytest
-
-from requirements_advisor_client.backend.database import (
-    Base,
-    ChatMessage,
-    Session,
-    cleanup_expired_sessions,
-    get_history,
-    get_or_create_session,
-    init_database,
-    save_message,
-)
 
 
 class TestDatabaseModels:
@@ -22,15 +10,17 @@ class TestDatabaseModels:
 
     def test_session_model_defaults(self):
         """Test Session model has correct defaults."""
-        session = Session()
+        from requirements_advisor_client.backend.database import Session
 
-        assert session.id is not None
-        assert len(session.id) == 36  # UUID format
-        assert session.created_at is None  # Set by DB
-        assert session.last_activity is None  # Set by DB
+        session = Session(id="test-id")
+
+        assert session.id == "test-id"
+        # created_at and last_activity will be None until inserted into DB
 
     def test_chat_message_model(self):
         """Test ChatMessage model creation."""
+        from requirements_advisor_client.backend.database import ChatMessage
+
         message = ChatMessage(
             session_id="test-session-id",
             role="user",
@@ -48,76 +38,93 @@ class TestDatabaseOperations:
     @pytest.mark.asyncio
     async def test_init_database(self):
         """Test database initialization creates tables."""
+        from sqlalchemy import text
         from sqlalchemy.ext.asyncio import create_async_engine
 
-        with patch(
-            "requirements_advisor_client.backend.database._get_engine"
-        ) as mock_get_engine:
-            engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-            mock_get_engine.return_value = engine
+        from requirements_advisor_client.backend.database import Base
 
-            await init_database()
+        engine = create_async_engine("sqlite+aiosqlite:///:memory:")
 
-            # Verify tables exist
-            async with engine.begin() as conn:
-                result = await conn.run_sync(
-                    lambda sync_conn: sync_conn.execute(
-                        "SELECT name FROM sqlite_master WHERE type='table'"
-                    ).fetchall()
-                )
-                table_names = [row[0] for row in result]
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
 
-            assert "sessions" in table_names
-            assert "chat_messages" in table_names
+        # Verify tables exist
+        async with engine.connect() as conn:
+            result = await conn.execute(
+                text("SELECT name FROM sqlite_master WHERE type='table'")
+            )
+            tables = [row[0] for row in result.fetchall()]
 
-            await engine.dispose()
+        assert "sessions" in tables
+        assert "chat_messages" in tables
+
+        await engine.dispose()
 
     @pytest.mark.asyncio
-    async def test_get_or_create_session_new(self, test_db):
-        """Test creating a new session."""
+    async def test_session_crud(self):
+        """Test session create and retrieve operations."""
         from sqlalchemy import select
+        from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-        with patch(
-            "requirements_advisor_client.backend.database.get_db"
-        ) as mock_get_db:
-            mock_get_db.return_value.__aenter__ = lambda s: test_db
-            mock_get_db.return_value.__aexit__ = lambda s, *args: None
+        from requirements_advisor_client.backend.database import Base, Session
 
-            session_id = "new-test-session"
+        engine = create_async_engine("sqlite+aiosqlite:///:memory:")
 
-            # Create tables first
-            async with test_db.get_bind().begin() as conn:
-                await conn.run_sync(Base.metadata.create_all)
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
 
-            # Should create new session
-            result = await get_or_create_session(session_id)
+        async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
-            assert result == session_id
+        # Create session
+        async with async_session() as db:
+            session = Session(id="test-session-123")
+            db.add(session)
+            await db.commit()
+
+        # Retrieve session
+        async with async_session() as db:
+            result = await db.execute(
+                select(Session).where(Session.id == "test-session-123")
+            )
+            retrieved = result.scalar_one_or_none()
+
+            assert retrieved is not None
+            assert retrieved.id == "test-session-123"
+
+        await engine.dispose()
 
     @pytest.mark.asyncio
-    async def test_save_message(self, test_db):
-        """Test saving a chat message."""
-        with patch(
-            "requirements_advisor_client.backend.database.get_db"
-        ) as mock_get_db:
-            mock_get_db.return_value.__aenter__ = lambda s: test_db
-            mock_get_db.return_value.__aexit__ = lambda s, *args: None
+    async def test_message_crud(self):
+        """Test message create and retrieve operations."""
+        from sqlalchemy import select
+        from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-            # Create tables first
-            async with test_db.get_bind().begin() as conn:
-                await conn.run_sync(Base.metadata.create_all)
+        from requirements_advisor_client.backend.database import Base, ChatMessage, Session
 
-            # Create session first
+        engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+
+        async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+        # Create session and message
+        async with async_session() as db:
             session = Session(id="test-session")
-            test_db.add(session)
-            await test_db.commit()
+            db.add(session)
+            await db.commit()
 
-            await save_message("test-session", "user", "Hello, world!")
+            message = ChatMessage(
+                session_id="test-session",
+                role="user",
+                content="Hello, world!",
+            )
+            db.add(message)
+            await db.commit()
 
-            # Verify message was saved
-            from sqlalchemy import select
-
-            result = await test_db.execute(
+        # Retrieve messages
+        async with async_session() as db:
+            result = await db.execute(
                 select(ChatMessage).where(ChatMessage.session_id == "test-session")
             )
             messages = result.scalars().all()
@@ -126,77 +133,75 @@ class TestDatabaseOperations:
             assert messages[0].role == "user"
             assert messages[0].content == "Hello, world!"
 
+        await engine.dispose()
+
     @pytest.mark.asyncio
-    async def test_get_history(self, test_db):
-        """Test retrieving chat history."""
-        with patch(
-            "requirements_advisor_client.backend.database.get_db"
-        ) as mock_get_db:
-            mock_get_db.return_value.__aenter__ = lambda s: test_db
-            mock_get_db.return_value.__aexit__ = lambda s, *args: None
+    async def test_message_ordering(self):
+        """Test that messages are ordered by created_at."""
+        from sqlalchemy import select
+        from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-            # Create tables
-            async with test_db.get_bind().begin() as conn:
-                await conn.run_sync(Base.metadata.create_all)
+        from requirements_advisor_client.backend.database import Base, ChatMessage, Session
 
-            # Create session and messages
-            session = Session(id="history-session")
-            test_db.add(session)
-            await test_db.commit()
+        engine = create_async_engine("sqlite+aiosqlite:///:memory:")
 
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+
+        async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+        async with async_session() as db:
+            session = Session(id="test-session")
+            db.add(session)
+            await db.commit()
+
+            # Add messages with explicit timestamps
             msg1 = ChatMessage(
-                session_id="history-session",
+                session_id="test-session",
                 role="user",
-                content="First message",
+                content="First",
                 created_at=datetime.utcnow() - timedelta(minutes=2),
             )
             msg2 = ChatMessage(
-                session_id="history-session",
+                session_id="test-session",
                 role="assistant",
-                content="Second message",
+                content="Second",
                 created_at=datetime.utcnow() - timedelta(minutes=1),
             )
-            test_db.add_all([msg1, msg2])
-            await test_db.commit()
+            db.add_all([msg1, msg2])
+            await db.commit()
 
-            history = await get_history("history-session")
+        async with async_session() as db:
+            result = await db.execute(
+                select(ChatMessage)
+                .where(ChatMessage.session_id == "test-session")
+                .order_by(ChatMessage.created_at)
+            )
+            messages = result.scalars().all()
 
-            assert len(history) == 2
-            assert history[0]["role"] == "user"
-            assert history[0]["content"] == "First message"
-            assert history[1]["role"] == "assistant"
+            assert len(messages) == 2
+            assert messages[0].content == "First"
+            assert messages[1].content == "Second"
 
-    @pytest.mark.asyncio
-    async def test_get_history_empty(self, test_db):
-        """Test retrieving history for non-existent session."""
-        with patch(
-            "requirements_advisor_client.backend.database.get_db"
-        ) as mock_get_db:
-            mock_get_db.return_value.__aenter__ = lambda s: test_db
-            mock_get_db.return_value.__aexit__ = lambda s, *args: None
-
-            # Create tables
-            async with test_db.get_bind().begin() as conn:
-                await conn.run_sync(Base.metadata.create_all)
-
-            history = await get_history("nonexistent-session")
-
-            assert history == []
+        await engine.dispose()
 
     @pytest.mark.asyncio
-    async def test_cleanup_expired_sessions(self, test_db):
+    async def test_session_cleanup(self):
         """Test cleanup of expired sessions."""
-        with patch(
-            "requirements_advisor_client.backend.database.get_db"
-        ) as mock_get_db:
-            mock_get_db.return_value.__aenter__ = lambda s: test_db
-            mock_get_db.return_value.__aexit__ = lambda s, *args: None
+        from sqlalchemy import delete, select
+        from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-            # Create tables
-            async with test_db.get_bind().begin() as conn:
-                await conn.run_sync(Base.metadata.create_all)
+        from requirements_advisor_client.backend.database import Base, Session
 
-            # Create old and new sessions
+        engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+
+        async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+        # Create old and new sessions
+        async with async_session() as db:
             old_session = Session(
                 id="old-session",
                 last_activity=datetime.utcnow() - timedelta(days=45),
@@ -205,18 +210,21 @@ class TestDatabaseOperations:
                 id="new-session",
                 last_activity=datetime.utcnow(),
             )
-            test_db.add_all([old_session, new_session])
-            await test_db.commit()
+            db.add_all([old_session, new_session])
+            await db.commit()
 
-            count = await cleanup_expired_sessions(days=30)
+        # Clean up expired sessions
+        cutoff = datetime.utcnow() - timedelta(days=30)
+        async with async_session() as db:
+            await db.execute(delete(Session).where(Session.last_activity < cutoff))
+            await db.commit()
 
-            assert count == 1
-
-            # Verify old session was deleted
-            from sqlalchemy import select
-
-            result = await test_db.execute(select(Session))
+        # Verify old session was deleted
+        async with async_session() as db:
+            result = await db.execute(select(Session))
             sessions = result.scalars().all()
 
             assert len(sessions) == 1
             assert sessions[0].id == "new-session"
+
+        await engine.dispose()

@@ -101,12 +101,15 @@ class TestExtractToolResult:
         """Test extracting from object without content attribute."""
         from requirements_advisor_client.backend.llm import extract_tool_result
 
-        mock_result = MagicMock(spec=[])  # No content attribute
-        mock_result.__str__ = MagicMock(return_value="String representation")
+        # Use a simple object without content attribute
+        class SimpleResult:
+            def __str__(self):
+                return "String representation"
 
+        mock_result = SimpleResult()
         result = extract_tool_result(mock_result)
 
-        assert "String representation" in result or "MagicMock" in result
+        assert result == "String representation"
 
 
 class TestCallLLMWithMCPTools:

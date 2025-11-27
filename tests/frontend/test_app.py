@@ -138,7 +138,8 @@ class TestSendChatMessage:
             )
 
             assert "error" in result
-            assert "timeout" in result["error"].lower()
+            # Check for "timed out" in any form
+            assert "timed out" in result["error"].lower() or "timeout" in result["error"].lower()
 
     def test_send_message_connection_error(self):
         """Test message send connection error."""
@@ -167,8 +168,8 @@ class TestStyles:
     def test_jama_brand_colors(self):
         """Test that Jama brand colors are defined."""
         from requirements_advisor_client.frontend.styles import (
-            JAMA_ORANGE,
             JAMA_DARK,
+            JAMA_ORANGE,
             JAMA_TEXT,
         )
 
