@@ -1,13 +1,11 @@
 # Railway deployment configuration for Requirements Advisor Client
 # This file configures the backend service deployment
+# Note: Frontend service should set RAILWAY_DOCKERFILE_TARGET=frontend in variables
 
 [build]
 builder = "dockerfile"
 dockerfilePath = "Dockerfile"
-
-# Build the backend target from the multi-stage Dockerfile
-[build.args]
-target = "backend"
+dockerfileTarget = "backend"
 
 [deploy]
 healthcheckPath = "/health"
