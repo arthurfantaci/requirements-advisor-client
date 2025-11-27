@@ -5,9 +5,9 @@ Provides the ORM models for session and message persistence,
 along with helper functions for database operations.
 """
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from datetime import datetime
-from typing import AsyncGenerator
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text, delete, select
@@ -18,6 +18,11 @@ from requirements_advisor_client.backend.config import settings
 from requirements_advisor_client.backend.logging import get_logger
 
 logger = get_logger("database")
+
+
+def _utc_now() -> datetime:
+    """Get current UTC time as timezone-aware datetime."""
+    return datetime.now(UTC)
 
 
 class Base(DeclarativeBase):
@@ -42,8 +47,8 @@ class Session(Base):
     __tablename__ = "sessions"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid4()))
-    created_at = Column(DateTime, default=datetime.utcnow)
-    last_activity = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=_utc_now)
+    last_activity = Column(DateTime(timezone=True), default=_utc_now, onupdate=_utc_now)
     messages = relationship(
         "ChatMessage",
         back_populates="session",
@@ -75,7 +80,7 @@ class ChatMessage(Base):
     )
     role = Column(String(20))
     content = Column(Text)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=_utc_now)
     session = relationship("Session", back_populates="messages")
 
 
@@ -218,7 +223,7 @@ async def cleanup_expired_sessions(days: int = 30) -> int:
     """
     from datetime import timedelta
 
-    cutoff = datetime.utcnow() - timedelta(days=days)
+    cutoff = _utc_now() - timedelta(days=days)
 
     async with get_db() as db:
         result = await db.execute(
