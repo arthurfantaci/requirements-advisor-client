@@ -235,6 +235,10 @@ Both services are configured for Railway deployment with the Dockerfile.
 5. Configure environment variables:
    - Backend: API keys + `DATABASE_URL=${{Postgres.DATABASE_URL}}`
    - Frontend: `API_URL=http://${{backend.RAILWAY_PRIVATE_DOMAIN}}:${{backend.PORT}}`
+6. (Optional) Enable Guardrails hub validators:
+   - Get a token from https://hub.guardrailsai.com/keys
+   - Add `GUARDRAILS_TOKEN` as a build-time variable for the Backend service
+   - Note: Without this token, the app works but uses fallback topic validation
 
 ## API Endpoints
 
