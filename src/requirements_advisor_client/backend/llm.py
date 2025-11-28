@@ -11,6 +11,7 @@ from typing import Any
 
 import litellm
 
+from requirements_advisor_client.backend.config import settings
 from requirements_advisor_client.backend.logging import get_logger
 from requirements_advisor_client.backend.mcp_client import MCPClient
 
@@ -88,7 +89,7 @@ async def call_llm_with_mcp_tools(
     messages: list[dict[str, Any]],
     tools: list[dict[str, Any]],
     mcp_client: MCPClient | None,
-    max_iterations: int = 5,
+    max_iterations: int | None = None,
 ) -> str:
     """Call an LLM with MCP tool support and handle the tool execution loop.
 
@@ -101,7 +102,7 @@ async def call_llm_with_mcp_tools(
         messages: Conversation messages including system message.
         tools: List of available tools in LiteLLM format.
         mcp_client: Connected MCP client for tool execution.
-        max_iterations: Maximum tool calling iterations (default: 5).
+        max_iterations: Maximum tool calling iterations (default: settings.llm_max_iterations).
 
     Returns:
         The final response text from the LLM.
@@ -122,6 +123,10 @@ async def call_llm_with_mcp_tools(
     if not model:
         available = ", ".join(MODEL_MAP.keys())
         raise ValueError(f"Unsupported provider '{provider}'. Available: {available}")
+
+    # Use configured default if not specified
+    if max_iterations is None:
+        max_iterations = settings.llm_max_iterations
 
     logger.info("Starting LLM call", provider=provider, model=model)
     current_messages = messages.copy()

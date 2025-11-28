@@ -208,6 +208,7 @@ docker compose down
 | `BACKEND_PORT` | Server port | `8000` |
 | `LOG_LEVEL` | Logging level | `INFO` |
 | `LOG_JSON` | Output logs as JSON | `false` |
+| `LLM_MAX_ITERATIONS` | Max tool-calling iterations per request | `10` |
 | `ANTHROPIC_API_KEY` | Anthropic API key | - |
 | `OPENAI_API_KEY` | OpenAI API key | - |
 | `GOOGLE_API_KEY` | Google AI API key | - |

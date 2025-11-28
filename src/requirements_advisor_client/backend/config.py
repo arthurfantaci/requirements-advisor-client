@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
     log_json: bool = False
 
+    # LLM Settings
+    llm_max_iterations: int = 10  # Max tool-calling iterations per request
+
     # LLM API Keys (optional - at least one should be set)
     anthropic_api_key: str | None = None
     openai_api_key: str | None = None
