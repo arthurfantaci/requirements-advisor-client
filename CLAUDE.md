@@ -19,7 +19,6 @@ requirements-advisor-client/
 │   │   ├── logging.py              # Loguru setup
 │   │   ├── mcp_client.py           # MCP client class
 │   │   ├── llm.py                  # LiteLLM integration
-│   │   ├── guardrails.py           # Input/output guardrails (Guardrails AI)
 │   │   ├── models.py               # Pydantic request/response models
 │   │   └── database.py             # SQLAlchemy async models
 │   └── frontend/                   # Streamlit application
@@ -35,7 +34,6 @@ requirements-advisor-client/
 │   │   ├── test_config.py
 │   │   ├── test_mcp_client.py
 │   │   ├── test_llm.py
-│   │   ├── test_guardrails.py
 │   │   ├── test_database.py
 │   │   └── test_main.py
 │   └── frontend/
@@ -78,9 +76,6 @@ uv run requirements-advisor-backend
 # - MCP_SERVER_URL (defaults to production Railway URL)
 # - DATABASE_URL (defaults to SQLite for local dev)
 # - LOG_LEVEL (DEBUG, INFO, WARNING, ERROR)
-# - GUARDRAILS_ENABLED (true/false, defaults to true)
-# - GUARDRAILS_LLM_PROVIDER (defaults to gpt-3.5-turbo)
-# - GUARDRAILS_TOXICITY_THRESHOLD (0-1, defaults to 0.8)
 ```
 
 ### Frontend
@@ -143,8 +138,7 @@ uv run pre-commit run --all-files
 - **config.py**: Pydantic settings with .env support
 - **logging.py**: Loguru with human-readable or JSON output
 - **mcp_client.py**: Async MCP client with Streamable HTTP transport
-- **llm.py**: LiteLLM wrapper for unified tool calling across providers
-- **guardrails.py**: Input/output guardrails using Guardrails AI (topic restriction, PII redaction, toxicity filtering)
+- **llm.py**: LiteLLM wrapper for unified tool calling across providers with strict system message for topic restriction
 - **models.py**: API request/response Pydantic models
 - **database.py**: SQLAlchemy async with PostgreSQL/SQLite support
 - **main.py**: FastAPI app with `/health`, `/tools`, `/chat`, `/history` endpoints

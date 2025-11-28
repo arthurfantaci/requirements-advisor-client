@@ -16,19 +16,6 @@ RUN uv venv /app/.venv && \
     . /app/.venv/bin/activate && \
     uv pip install --no-cache .
 
-# Install Guardrails hub validators for input/output filtering
-# Requires GUARDRAILS_TOKEN from https://hub.guardrailsai.com/keys
-ARG GUARDRAILS_TOKEN=""
-RUN . /app/.venv/bin/activate && \
-    if [ -n "$GUARDRAILS_TOKEN" ]; then \
-        guardrails configure --token "$GUARDRAILS_TOKEN" --disable-metrics --disable-remote-inferencing && \
-        guardrails hub install hub://tryolabs/restricttotopic --no-install-local-models --quiet && \
-        guardrails hub install hub://guardrails/toxic_language --quiet && \
-        (guardrails hub install hub://guardrails/detect_pii --quiet || echo "Warning: detect_pii installation failed, continuing without PII detection"); \
-    else \
-        echo "GUARDRAILS_TOKEN not set - skipping hub validators installation"; \
-    fi
-
 # =============================================================================
 # Stage 2: Backend runtime
 # =============================================================================

@@ -20,11 +20,6 @@ from requirements_advisor_client.backend.database import (
     init_database,
     save_message,
 )
-from requirements_advisor_client.backend.guardrails import (
-    REDIRECT_SYSTEM_MESSAGE,
-    get_input_guardrails,
-    get_output_guardrails,
-)
 from requirements_advisor_client.backend.llm import (
     SYSTEM_MESSAGE,
     call_llm_with_mcp_tools,
@@ -175,59 +170,34 @@ async def list_tools() -> list[ToolInfo]:
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest, req: Request) -> ChatResponse:
-    """Chat endpoint with MCP tool support and guardrails.
+    """Chat endpoint with MCP tool support.
 
-    Processes user messages through input guardrails, invokes LLM with
-    available tools (if on-topic), applies output guardrails, and
-    persists conversation history.
+    Processes user messages, invokes LLM with available tools,
+    and persists conversation history.
 
     Args:
         request: Chat request with message and context.
         req: FastAPI request for session access.
 
     Returns:
-        Chat response with assistant message, session ID, and guardrail flags.
+        Chat response with assistant message and session ID.
 
     Raises:
-        HTTPException: If LLM processing fails or content is blocked.
+        HTTPException: If LLM processing fails.
     """
     session_id = request.session_id or req.state.session_id
 
     # Ensure session exists in database
     await get_or_create_session(session_id)
 
-    # === INPUT GUARDRAILS ===
-    was_redirected = False
-    content_filtered = False
-    input_result = None
+    # Build messages for LLM
+    messages: list[dict] = [{"role": "system", "content": SYSTEM_MESSAGE}]
 
-    if settings.guardrails_enabled:
-        input_guardrails = get_input_guardrails()
-        try:
-            input_result = await input_guardrails.validate(request.message)
-        except ValueError as e:
-            # Toxic content - hard block
-            logger.warning("Input blocked by guardrails", reason=str(e))
-            raise HTTPException(status_code=400, detail=str(e)) from e
-
-    # Determine if we should use redirect mode
-    use_redirect = input_result is not None and not input_result.is_on_topic
-
-    # Build messages for LLM based on topic validation
-    if use_redirect:
-        # Off-topic: Use redirect system message, no tools
-        messages: list[dict] = [{"role": "system", "content": REDIRECT_SYSTEM_MESSAGE}]
-        tools: list[dict] = []  # No tools for redirect
-        was_redirected = True
-        logger.info("Using redirect mode for off-topic query")
-    else:
-        # On-topic: Normal processing with tools
-        messages: list[dict] = [{"role": "system", "content": SYSTEM_MESSAGE}]
-        # Get available tools
-        tools: list[dict] = []
-        if mcp_client and mcp_client.is_connected:
-            mcp_tools = await mcp_client.list_tools()
-            tools = mcp_to_litellm_tools(mcp_tools)
+    # Get available tools
+    tools: list[dict] = []
+    if mcp_client and mcp_client.is_connected:
+        mcp_tools = await mcp_client.list_tools()
+        tools = mcp_to_litellm_tools(mcp_tools)
 
     # Add conversation history (last 10 messages)
     for msg in request.history[-10:]:
@@ -235,13 +205,13 @@ async def chat(request: ChatRequest, req: Request) -> ChatResponse:
 
     messages.append({"role": "user", "content": request.message})
 
-    # Call LLM with tools (or without for redirect)
+    # Call LLM with tools
     try:
         response_text = await call_llm_with_mcp_tools(
             provider=request.provider,
             messages=messages,
             tools=tools,
-            mcp_client=mcp_client if not use_redirect else None,
+            mcp_client=mcp_client,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
@@ -266,20 +236,6 @@ async def chat(request: ChatRequest, req: Request) -> ChatResponse:
             ) from None
         raise HTTPException(status_code=500, detail=f"LLM error: {error_msg}") from None
 
-    # === OUTPUT GUARDRAILS ===
-    if settings.guardrails_enabled:
-        output_guardrails = get_output_guardrails()
-        output_result = await output_guardrails.validate(response_text)
-        response_text = output_result.content  # Use sanitized content
-
-        if output_result.pii_detected or output_result.toxicity_detected:
-            content_filtered = True
-
-        if output_result.pii_detected:
-            logger.info("PII was redacted from response")
-        if output_result.toxicity_detected:
-            logger.info("Toxic content was sanitized from response")
-
     # Save messages to database
     await save_message(session_id, "user", request.message)
     await save_message(session_id, "assistant", response_text)
@@ -288,8 +244,6 @@ async def chat(request: ChatRequest, req: Request) -> ChatResponse:
         response=response_text,
         session_id=session_id,
         tools_used=[],
-        was_redirected=was_redirected,
-        content_filtered=content_filtered,
     )
 
 
