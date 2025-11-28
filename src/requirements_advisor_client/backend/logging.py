@@ -41,17 +41,17 @@ def setup_logging(
         "<level>{message}</level>"
     )
 
-    # Add stderr handler
+    # Add stdout handler (stdout preferred over stderr for proper log level classification)
     if json_output:
         logger.add(
-            sys.stderr,
+            sys.stdout,
             level=level,
             format="{message}",
             serialize=True,  # JSON serialization
         )
     else:
         logger.add(
-            sys.stderr,
+            sys.stdout,
             level=level,
             format=human_format,
             colorize=True,

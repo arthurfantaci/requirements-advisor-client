@@ -151,7 +151,12 @@ async def call_llm_with_mcp_tools(
         # Execute each tool call
         for tool_call in assistant_message.tool_calls:
             tool_name = tool_call.function.name
-            logger.debug("Executing tool", tool=tool_name)
+            logger.debug(
+                "Executing tool",
+                tool=tool_name,
+                iteration=iteration + 1,
+                max_iterations=max_iterations,
+            )
 
             # Parse arguments
             try:
@@ -181,13 +186,20 @@ async def call_llm_with_mcp_tools(
             )
 
     # Max iterations reached - get final response without tools
-    logger.warning("Max iterations reached, getting final response")
-    final_response = await asyncio.to_thread(
-        litellm.completion,
-        model=model,
-        messages=current_messages,
+    logger.warning(
+        "Max iterations reached, getting final response",
+        iterations=max_iterations,
     )
-    return final_response.choices[0].message.content or ""
+    try:
+        final_response = await asyncio.to_thread(
+            litellm.completion,
+            model=model,
+            messages=current_messages,
+        )
+        return final_response.choices[0].message.content or ""
+    except Exception as e:
+        logger.error("Final response call failed after max iterations", error=str(e))
+        raise
 
 
 def get_supported_providers() -> list[str]:
