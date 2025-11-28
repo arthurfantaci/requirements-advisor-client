@@ -91,9 +91,44 @@ def apply_jama_branding() -> None:
             border-color: {JAMA_ORANGE};
         }}
 
-        /* Headers */
-        h1 {{ color: {JAMA_DARK}; font-weight: 700; }}
+        /* Headers - Main title in Jama orange */
+        h1 {{ color: {JAMA_ORANGE}; font-weight: 700; }}
         h2, h3 {{ color: {JAMA_TEXT}; font-weight: 600; }}
+
+        /* Subtitle styling - Jama orange */
+        .subtitle {{
+            color: {JAMA_ORANGE} !important;
+            font-style: italic;
+            font-size: 1rem;
+            margin-top: -0.5rem;
+            margin-bottom: 1rem;
+        }}
+
+        /* Description section headings - Jama orange */
+        .description-heading {{
+            color: {JAMA_ORANGE} !important;
+            font-weight: 700;
+        }}
+
+        /* Contact section styling */
+        .contact-section {{
+            font-size: 0.85rem;
+        }}
+
+        .contact-section strong {{
+            color: {JAMA_ORANGE} !important;
+            font-size: 1rem;
+        }}
+
+        .contact-section a {{
+            color: {JAMA_TEXT_LIGHT} !important;
+            text-decoration: underline;
+        }}
+
+        .contact-section a:hover {{
+            color: {JAMA_ORANGE} !important;
+        }}
+
 
         /* Hide Streamlit branding */
         #MainMenu {{visibility: hidden;}}
@@ -110,13 +145,125 @@ def apply_jama_branding() -> None:
             font-size: 0.875rem;
         }}
 
-        /* Guardrail indicators - subtle styling */
-        .guardrail-indicator {{
-            color: #6B7280;
-            font-size: 0.75rem;
-            font-style: italic;
-            margin-top: -0.5rem;
-            padding: 2px 0;
+        /* Secondary buttons - quick-start prompts */
+        .stButton > button[kind="secondary"] {{
+            background-color: {JAMA_BACKGROUND_SECONDARY};
+            color: {JAMA_TEXT};
+            border: 1px solid {JAMA_BORDER};
+            text-align: left;
+            font-size: 0.9rem;
+            font-weight: 400;
+        }}
+
+        .stButton > button[kind="secondary"]:hover {{
+            background-color: {JAMA_BORDER};
+            border-color: {JAMA_ORANGE};
+        }}
+
+        /* Sidebar expander styling - collapsed state */
+        [data-testid="stSidebar"] [data-testid="stExpander"] summary {{
+            color: {JAMA_TEXT_LIGHT} !important;
+            font-weight: 500;
+        }}
+
+        [data-testid="stSidebar"] [data-testid="stExpander"] summary span {{
+            color: {JAMA_TEXT_LIGHT} !important;
+        }}
+
+        [data-testid="stSidebar"] [data-testid="stExpander"] summary svg {{
+            fill: {JAMA_TEXT_LIGHT} !important;
+        }}
+
+        /* Sidebar expander styling - expanded state (Jama orange) */
+        [data-testid="stSidebar"] [data-testid="stExpander"][open] summary,
+        [data-testid="stSidebar"] details[open] summary {{
+            color: {JAMA_ORANGE} !important;
+        }}
+
+        [data-testid="stSidebar"] [data-testid="stExpander"][open] summary span,
+        [data-testid="stSidebar"] details[open] summary span {{
+            color: {JAMA_ORANGE} !important;
+        }}
+
+        [data-testid="stSidebar"] [data-testid="stExpander"][open] summary svg,
+        [data-testid="stSidebar"] details[open] summary svg {{
+            fill: {JAMA_ORANGE} !important;
+        }}
+
+        /* Main content expander styling - expanded state (Jama orange) */
+        [data-testid="stExpander"][open] summary,
+        [data-testid="stMainBlockContainer"] details[open] summary {{
+            color: {JAMA_ORANGE} !important;
+        }}
+
+        [data-testid="stExpander"][open] summary span,
+        [data-testid="stMainBlockContainer"] details[open] summary span {{
+            color: {JAMA_ORANGE} !important;
+        }}
+
+        [data-testid="stExpander"][open] summary svg,
+        [data-testid="stMainBlockContainer"] details[open] summary svg {{
+            fill: {JAMA_ORANGE} !important;
+        }}
+
+        /* Sidebar expander content styling */
+        [data-testid="stSidebar"] [data-testid="stExpander"] div[data-testid="stExpanderDetails"] {{
+            color: {JAMA_TEXT_LIGHT};
+            font-size: 0.9rem;
+        }}
+
+        /* Sidebar expander content - bold text in Jama orange */
+        [data-testid="stSidebar"] [data-testid="stExpander"] div[data-testid="stExpanderDetails"] strong {{
+            color: {JAMA_ORANGE} !important;
+        }}
+
+        /* Sidebar expander content - horizontal rules styled subtly */
+        [data-testid="stSidebar"] [data-testid="stExpander"] div[data-testid="stExpanderDetails"] hr {{
+            border-color: rgba(232, 104, 38, 0.3);
+            margin: 0.75rem 0;
+        }}
+
+        /* Auto-hide description styling */
+        .fade-out-description {{
+            transition: opacity 1s ease-out, max-height 1s ease-out, margin-bottom 1s ease-out;
+            opacity: 1;
+            max-height: 1000px;
+            overflow: hidden;
+        }}
+
+        /* Blink animation for expander */
+        @keyframes blink {{
+            0%, 100% {{ opacity: 1; }}
+            50% {{ opacity: 0.3; }}
+        }}
+
+        .blink-animation {{
+            animation: blink 0.5s ease-in-out infinite;
+        }}
+
+        /* Available Tools styling */
+        .tool-card {{
+            margin-top: 0.75rem;
+            margin-bottom: 0.25rem;
+        }}
+
+        .tool-name {{
+            background-color: rgba(232, 104, 38, 0.15);
+            color: {JAMA_ORANGE};
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }}
+
+        .tool-description {{
+            color: {JAMA_TEXT_LIGHT};
+            font-size: 0.85rem;
+            line-height: 1.4;
+            margin-top: 0.25rem;
+            margin-bottom: 0.75rem;
+            padding-left: 0.25rem;
         }}
         </style>
     """,
@@ -137,31 +284,3 @@ def render_status_indicator(connected: bool, label: str) -> None:
         f'<span class="{status_class}">{label}: {status_text}</span>',
         unsafe_allow_html=True,
     )
-
-
-def render_guardrail_indicator(indicator_type: str) -> None:
-    """Render a subtle guardrail indicator below chat responses.
-
-    Displays a small, italicized indicator when guardrails have intervened
-    to either redirect an off-topic query or filter content for safety.
-
-    Args:
-        indicator_type: Type of guardrail intervention.
-            - "redirected": Off-topic query was redirected
-            - "filtered": Content was filtered for safety (PII/toxicity)
-
-    Example:
-        >>> render_guardrail_indicator("redirected")
-        >>> render_guardrail_indicator("filtered")
-    """
-    messages = {
-        "redirected": "Topic guidance provided",
-        "filtered": "Content reviewed for safety",
-    }
-
-    message = messages.get(indicator_type, "")
-    if message:
-        st.markdown(
-            f'<p class="guardrail-indicator">*{message}*</p>',
-            unsafe_allow_html=True,
-        )
