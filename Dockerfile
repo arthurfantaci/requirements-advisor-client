@@ -24,7 +24,7 @@ RUN . /app/.venv/bin/activate && \
         guardrails configure --token "$GUARDRAILS_TOKEN" --disable-metrics --disable-remote-inferencing && \
         guardrails hub install hub://tryolabs/restricttotopic --no-install-local-models --quiet && \
         guardrails hub install hub://guardrails/toxic_language --quiet && \
-        guardrails hub install hub://guardrails/detect_pii --quiet; \
+        (guardrails hub install hub://guardrails/detect_pii --quiet || echo "Warning: detect_pii installation failed, continuing without PII detection"); \
     else \
         echo "GUARDRAILS_TOKEN not set - skipping hub validators installation"; \
     fi
