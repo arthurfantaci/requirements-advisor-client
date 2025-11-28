@@ -142,6 +142,12 @@ class InputGuardrails:
                 error=str(e),
             )
             self._initialized = True  # Mark as initialized to avoid retry
+        except Exception as e:
+            logger.warning(
+                "Failed to initialize input guardrails, continuing without them",
+                error=str(e),
+            )
+            self._initialized = True  # Mark as initialized to avoid retry
 
     async def validate(self, user_input: str) -> GuardrailResult:
         """Validate user input against guardrails.
@@ -176,8 +182,10 @@ class InputGuardrails:
                         "Your message contains content that violates our usage policy. "
                         "Please rephrase your question."
                     ) from e
-                # Re-raise if it's a different type of error
-                raise
+                # For any other error (API issues, etc.), log and continue
+                logger.warning(
+                    "Toxicity validation error, skipping check", error=str(e)
+                )
 
         # Check topic relevance (soft validation)
         if self._topic_guard is not None:
@@ -284,6 +292,12 @@ class OutputGuardrails:
                 "Guardrails hub validators not installed. "
                 "Run: guardrails hub install hub://guardrails/detect_pii "
                 "and guardrails hub install hub://guardrails/toxic_language",
+                error=str(e),
+            )
+            self._initialized = True  # Mark as initialized to avoid retry
+        except Exception as e:
+            logger.warning(
+                "Failed to initialize output guardrails, continuing without them",
                 error=str(e),
             )
             self._initialized = True  # Mark as initialized to avoid retry
