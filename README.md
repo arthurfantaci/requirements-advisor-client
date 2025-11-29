@@ -258,7 +258,7 @@ Send a chat message.
 ```json
 {
   "message": "How do I write good requirements?",
-  "provider": "claude",
+  "provider": "gemini",
   "session_id": null,
   "history": []
 }

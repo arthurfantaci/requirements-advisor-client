@@ -150,7 +150,7 @@ def apply_jama_branding() -> None:
             background-color: {JAMA_BACKGROUND_SECONDARY};
             color: {JAMA_TEXT};
             border: 1px solid {JAMA_BORDER};
-            text-align: left;
+            text-align: center;
             font-size: 0.9rem;
             font-weight: 400;
         }}

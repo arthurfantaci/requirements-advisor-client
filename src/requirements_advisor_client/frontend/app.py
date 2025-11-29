@@ -106,12 +106,14 @@ serving as a foundation for strategic product discussions.
 
 **What It Demonstrates**:
 - Real-time knowledge retrieval from authoritative sources
-- Intelligent synthesis across INCOSE guidelines, EARS notation, and Jama best practices
 - Multi-LLM flexibility (Claude, GPT-4o, Gemini)
 - Extensible architecture ready for enterprise integration
 
-**Strategic Intent**: Use this baseline to explore practical enhancements
-that could differentiate Jama's product offerings and deliver new customer value.
+**Strategic Intent**: Use this baseline to explore practical enhancements that:
+- Engage customers and prospects through interactive dialogue
+- Differentiate Jama's product offerings
+- Drive automated lead qualification and generation
+- Create upselling opportunities
             """)
 
         with st.expander("Strategic Opportunities", expanded=False):
@@ -264,9 +266,7 @@ def render_quick_start_prompts() -> None:
 
         prompts = [
             "Are there industry-specific considerations when evaluating requirements management solutions?",
-            "What are the key differences between EARS notation patterns for complex system requirements?",
             "How should organizations approach requirements traceability for regulatory compliance?",
-            "What does INCOSE recommend for validating requirements quality at scale?",
             "How can requirements management practices support both traditional and agile development methodologies?",
         ]
 
@@ -299,13 +299,17 @@ serving as a foundation for strategic product discussions.</p>
 <p><span class="description-heading">What It Demonstrates</span>:</p>
 <ul>
 <li>Real-time knowledge retrieval from authoritative sources</li>
-<li>Intelligent synthesis across INCOSE guidelines, EARS notation, and Jama best practices</li>
 <li>Multi-LLM flexibility (Claude, GPT-4o, Gemini)</li>
 <li>Extensible architecture ready for enterprise integration</li>
 </ul>
 
-<p><span class="description-heading">Strategic Intent</span>: Use this baseline to explore practical enhancements
-that could differentiate Jama's product offerings and deliver new customer value.</p>
+<p><span class="description-heading">Strategic Intent</span>: Use this baseline to explore practical enhancements that:</p>
+<ul>
+<li>Engage customers and prospects through interactive dialogue</li>
+<li>Differentiate Jama's product offerings</li>
+<li>Drive automated lead qualification and generation</li>
+<li>Create upselling opportunities</li>
+</ul>
 
 </div>
         """,
@@ -366,11 +370,8 @@ that could differentiate Jama's product offerings and deliver new customer value
         # Add user message
         st.session_state.messages.append({"role": "user", "content": prompt})
 
-        # Get assistant response (same logic as existing chat input handler)
-        with st.chat_message("user"):
-            st.markdown(prompt)
-
-        with st.chat_message("assistant"), st.spinner("Thinking..."):
+        # Get assistant response
+        with st.spinner("Thinking..."):
             result = send_chat_message(
                 message=prompt,
                 session_id=st.session_state.session_id,
@@ -384,8 +385,10 @@ that could differentiate Jama's product offerings and deliver new customer value
                 response_text = result.get("response", "No response received.")
                 st.session_state.session_id = result.get("session_id")
 
-            st.markdown(response_text)
             st.session_state.messages.append({"role": "assistant", "content": response_text})
+
+        # Rerun to display messages via history loop (prevents duplication)
+        st.rerun()
 
     # Display conversation history
     for message in st.session_state.messages:
@@ -442,7 +445,7 @@ def main() -> None:
     if "session_id" not in st.session_state:
         st.session_state.session_id = None
     if "selected_llm" not in st.session_state:
-        st.session_state.selected_llm = "claude"
+        st.session_state.selected_llm = "gemini"
 
     # Render components
     render_sidebar()

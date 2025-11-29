@@ -76,12 +76,14 @@ product discussions.
 
 **What It Demonstrates**:
 - Real-time knowledge retrieval from authoritative sources
-- Intelligent synthesis across INCOSE guidelines, EARS notation, and Jama best practices
 - Multi-LLM flexibility (Claude, GPT-4o, Gemini)
 - Extensible architecture ready for enterprise integration
 
-**Strategic Intent**: Use this baseline to explore practical enhancements 
-that could differentiate Jama's product offerings and deliver new customer value.
+**Strategic Intent**: Use this baseline to explore practical enhancements that:
+- Engage customers and prospects through interactive dialogue
+- Differentiate Jama's product offerings
+- Drive automated lead qualification and generation
+- Create upselling opportunities
     """)
 ```
 
@@ -157,7 +159,7 @@ This proof-of-concept demonstrates how Agentic RAG (Retrieval-Augmented Generati
 and the Model Context Protocol (MCP) can transform requirements management workflows.
 
 Built as a strategic exploration platform, this application showcases:
-- **Real-time retrieval** from authoritative sources (INCOSE, EARS, Jama best practices)
+- **Real-time retrieval** from authoritative sources
 - **Multi-LLM orchestration** with tool-calling capabilities
 - **A modular, extensible architecture** ready for enterprise integration
 
@@ -190,9 +192,7 @@ def render_quick_start_prompts() -> str | None:
     
     prompts = [
         "Are there industry-specific considerations when evaluating requirements management solutions?",
-        "What are the key differences between EARS notation patterns for complex system requirements?",
         "How should organizations approach requirements traceability for regulatory compliance?",
-        "What does INCOSE recommend for validating requirements quality at scale?",
         "How can requirements management practices support both traditional and agile development methodologies?",
     ]
     
@@ -251,9 +251,7 @@ def render_quick_start_prompts() -> None:
     
     prompts = [
         "Are there industry-specific considerations when evaluating requirements management solutions?",
-        "What are the key differences between EARS notation patterns for complex system requirements?",
         "How should organizations approach requirements traceability for regulatory compliance?",
-        "What does INCOSE recommend for validating requirements quality at scale?",
         "How can requirements management practices support both traditional and agile development methodologies?",
     ]
     
@@ -425,7 +423,7 @@ After implementation, verify:
 - [ ] "About This Demo" expander opens/closes correctly and displays content
 - [ ] "Strategic Opportunities" expander opens/closes correctly and displays all three opportunities
 - [ ] Main description renders with bullet points and bold text correctly
-- [ ] All five quick-start prompt buttons are visible
+- [ ] All three quick-start prompt buttons are visible
 - [ ] Clicking a quick-start prompt populates it as a user message
 - [ ] Quick-start prompt triggers LLM response correctly
 - [ ] Chat input placeholder shows updated text
