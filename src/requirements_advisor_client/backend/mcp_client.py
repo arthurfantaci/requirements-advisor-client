@@ -125,7 +125,10 @@ class MCPClient:
         return self._tools_cache.tools if self._tools_cache else []
 
     async def call_tool(self, tool_name: str, arguments: dict[str, Any]) -> Any:
-        """Execute a tool on the MCP server.
+        """Execute a tool on the MCP server with automatic reconnection.
+
+        If the connection appears stale (e.g., after server restart or idle timeout),
+        automatically reconnects and retries the tool call once.
 
         Args:
             tool_name: The name of the tool to execute.
@@ -136,7 +139,7 @@ class MCPClient:
 
         Raises:
             RuntimeError: If not connected to an MCP server.
-            Exception: If tool execution fails on the server.
+            Exception: If tool execution fails on the server after retry.
 
         Example:
             >>> result = await client.call_tool(
@@ -154,6 +157,30 @@ class MCPClient:
             logger.debug("Tool call completed", tool=tool_name)
             return result
         except Exception as e:
+            error_msg = str(e).lower()
+            # Detect connection-related errors that indicate a stale connection
+            connection_errors = ["closed", "reset", "eof", "connection", "broken", "timeout"]
+
+            if any(term in error_msg for term in connection_errors):
+                logger.warning(
+                    "Stale connection detected, attempting reconnection",
+                    tool=tool_name,
+                    error=str(e),
+                )
+                try:
+                    await self._reconnect()
+                    # Retry the tool call once after reconnection
+                    result = await self.session.call_tool(tool_name, arguments)
+                    logger.debug("Tool call succeeded after reconnection", tool=tool_name)
+                    return result
+                except Exception as retry_error:
+                    logger.error(
+                        "Tool call failed after reconnection",
+                        tool=tool_name,
+                        error=str(retry_error),
+                    )
+                    raise
+
             logger.error("Tool call failed", tool=tool_name, error=str(e))
             raise
 
@@ -171,6 +198,36 @@ class MCPClient:
         self._tools_cache = None
         self._server_url = None
 
+    async def _reconnect(self) -> None:
+        """Reconnect to the MCP server after a stale connection.
+
+        Cleans up the old connection and establishes a new one
+        using the previously stored server URL.
+
+        Raises:
+            RuntimeError: If no server URL is stored from a previous connection.
+            Exception: If reconnection fails.
+        """
+        if not self._server_url:
+            raise RuntimeError("Cannot reconnect: no server URL stored")
+
+        server_url = self._server_url
+        logger.info("Reconnecting to MCP server", url=server_url)
+
+        # Clean up old connection resources
+        try:
+            await self._exit_stack.aclose()
+        except Exception as e:
+            logger.debug("Error closing old connection", error=str(e))
+
+        # Reset state
+        self._exit_stack = AsyncExitStack()
+        self.session = None
+        self._tools_cache = None
+
+        # Establish new connection (this will set _server_url again)
+        await self.connect(server_url)
+
     async def refresh_tools(self) -> list:
         """Refresh the cached list of tools from the server.
 
@@ -185,3 +242,26 @@ class MCPClient:
         self._tools_cache = await self.session.list_tools()
         logger.debug("Refreshed tools cache", count=len(self._tools_cache.tools))
         return self._tools_cache.tools if self._tools_cache else []
+
+    async def check_connection(self) -> bool:
+        """Verify the connection is still alive by pinging the server.
+
+        Useful for proactive health checks before making tool calls.
+
+        Returns:
+            True if connection is healthy, False otherwise.
+
+        Example:
+            >>> if not await client.check_connection():
+            ...     await client._reconnect()
+        """
+        if not self.is_connected:
+            return False
+
+        try:
+            await self.session.send_ping()
+            logger.debug("Connection health check passed")
+            return True
+        except Exception as e:
+            logger.warning("Connection health check failed", error=str(e))
+            return False
